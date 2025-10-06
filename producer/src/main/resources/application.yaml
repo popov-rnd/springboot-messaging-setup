@@ -1,0 +1,32 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: producer
+  rabbitmq:
+    # use either host/port OR addresses
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    publisher-confirm-type: correlated   # ✅ enables confirm callbacks
+    publisher-returns: true              # ✅ enables return callbacks
+    # optional: producer template retry
+    template:
+      retry:
+        enabled: true
+        initial-interval: 2s
+        max-attempts: 5
+        multiplier: 2.0 # meaning delay doubles each retry (2s ? 4s ? 8s).
+        max-interval: 10s
+
+producer:
+  exchange: popov-rnd.exchange   # Where the producer publishes messages.
+  routing-key: popov-rnd.key     # How the exchange decides where to send the message.
+  queue: popov-rnd.queue         # Where the message is stored until a consumer retrieves it.
+
+logging:
+  level:
+    com.popovrnd.producer: DEBUG  # Custom package logging
+    org.springframework: WARN
