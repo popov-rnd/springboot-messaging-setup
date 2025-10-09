@@ -6,5 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record ProducerProps(
         String exchange,
         String routingKey,
-        String queue
+        String queue,
+        String dlx,
+        String dlq
 ) {}

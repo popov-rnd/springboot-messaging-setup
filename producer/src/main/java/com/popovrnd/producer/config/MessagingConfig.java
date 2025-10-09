@@ -12,6 +12,36 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.amqp.core.*;
 
+/**
+ * Declares a RabbitMQ quorum queue (modern).
+ * <p>
+ * Quorum queues are the modern, replicated queue type in RabbitMQ.
+ * They are based on the Raft consensus algorithm and are recommended
+ * for all production workloads instead of classic queues.
+ * <p>
+ * Key characteristics:
+ * <ul>
+ *   <li><b>Durable and replicated</b> — message data is persisted and
+ *       replicated across cluster nodes using Raft.</li>
+ *   <li><b>Delivery-limit support</b> — the broker can automatically
+ *       count message delivery attempts and dead-letter messages
+ *       after the limit is reached (no app-side retry counters needed).</li>
+ *   <li><b>Crash-safe</b> — can recover cleanly even if a node fails
+ *       during message processing.</li>
+ * </ul>
+ * <p>
+ * When running on a <b>single-node</b> RabbitMQ instance (e.g. local Docker),
+ * the quorum queue is still fully functional: the single node acts as both
+ * the leader and the only replica. Raft replication logic remains active,
+ * but since there are no followers, the queue simply logs locally with
+ * minimal overhead (~5–10% slower than a classic queue).
+ * <p>
+ * No configuration changes are required when scaling to multiple nodes —
+ * additional nodes will automatically join the Raft quorum and replicate
+ * this queue for high availability.
+ *
+ * @return a durable quorum queue named "popov-rnd.queue"
+ */
 @Configuration
 public class MessagingConfig {
 
@@ -23,24 +53,54 @@ public class MessagingConfig {
         this.props = props;
     }
 
-    /**
-     * The second argument (true) in new Queue(name, durable) makes the queue durable,
-     * meaning it will survive broker restarts — it’s stored on disk, not just in memory.
-     * @return
-     */
     @Bean
-    public Queue queue() {
-        return new Queue(props.queue(), true);
+    public Queue mainQueue() {
+        return QueueBuilder
+                .durable(props.queue())
+                .withArgument("x-queue-type", "quorum")
+                .withArgument("x-delivery-limit", 3)
+                .withArgument("x-dead-letter-exchange", props.dlx())
+                .withArgument("x-dead-letter-routing-key", props.routingKey() + ".dlq")
+                .build();
     }
 
     @Bean
-    public TopicExchange exchange() {
-        return new TopicExchange(props.exchange());
+    public Queue dlqQueue() {
+        return QueueBuilder
+                .durable(props.dlq())
+                .build();
     }
 
     @Bean
-    public Binding binding(Queue queue, TopicExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(props.routingKey());
+    public DirectExchange mainExchange() {
+        return ExchangeBuilder
+                .directExchange(props.exchange())
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public DirectExchange dlxExchange() {
+        return ExchangeBuilder
+                .directExchange(props.dlx())
+                .durable(true)
+                .build();
+    }
+
+    @Bean
+    public Binding bindMain() {
+        return BindingBuilder
+                .bind(mainQueue())
+                .to(mainExchange())
+                .with(props.routingKey());
+    }
+
+    @Bean
+    public Binding bindDlq() {
+        return BindingBuilder
+                .bind(dlqQueue())
+                .to(dlxExchange())
+                .with(props.routingKey() + ".dlq");
     }
 
     @Bean

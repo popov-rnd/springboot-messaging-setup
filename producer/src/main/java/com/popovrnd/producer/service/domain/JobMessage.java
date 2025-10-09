@@ -1,7 +1,7 @@
 package com.popovrnd.producer.service.domain;
 
 import java.io.Serializable;
-import java.time.Instant;
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -12,7 +12,7 @@ public record JobMessage(
         String type,        // Message type, e.g. "USER_CREATED", "JOB_STARTED"
         String source,      // Origin service or module
         Object payload,     // Actual data (can be DTO, Map, or simple text)
-        Instant createdAt,  // Message creation timestamp
+        Date createdAt,  // Message creation timestamp
         String correlationId // Optional, to link related messages
 ) implements Serializable {
 
@@ -22,7 +22,7 @@ public record JobMessage(
                 type,
                 source,
                 payload,
-                Instant.now(),
+                new Date(),
                 correlationId
         );
     }

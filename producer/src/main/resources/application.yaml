@@ -5,26 +5,28 @@ spring:
   application:
     name: producer
   rabbitmq:
-    # use either host/port OR addresses
+    # Use either host/port OR addresses
     host: ${RABBIT_HOST:localhost}
     port: ${RABBIT_PORT:5672}
     username: ${RABBIT_USER:guest}
     password: ${RABBIT_PASS:guest}
-    publisher-confirm-type: correlated   # ✅ enables confirm callbacks
-    publisher-returns: true              # ✅ enables return callbacks
-    # optional: producer template retry
+    publisher-confirm-type: correlated   # ✅ Enables confirm callbacks
+    publisher-returns: true              # ✅ Enables return callbacks
+    # Optional: producer template retry
     template:
       retry:
         enabled: true # Re-try when: network broken (VPN, firewall, DNS issue, no TCP), etc.
         initial-interval: 2s
         max-attempts: 5
-        multiplier: 2.0 # meaning delay doubles each retry (2s ? 4s ? 8s).
+        multiplier: 2.0 # Meaning delay doubles each retry (2s ? 4s ? 8s).
         max-interval: 10s
 
 producer:
-  exchange: popov-rnd.exchange   # Where the producer publishes messages.
-  routing-key: popov-rnd.key     # How the exchange decides where to send the message.
-  queue: popov-rnd.queue         # Where the message is stored until a consumer retrieves it.
+  exchange: popov-rnd.exchange   # The main exchange the producer publishes messages to. Acts as the entry point into RabbitMQ routing logic.
+  routing-key: popov-rnd.key     # The routing key used by the exchange to decide which queue(s) will receive the message. For a direct exchange, it must match the binding key exactly.
+  queue: popov-rnd.queue         # The main queue bound to the exchange using the routing key. Messages published to the exchange with the matching key are stored here until consumed and acknowledged.
+  dlx: popov-rnd.dlx             # The Dead-Letter Exchange (DLX) — receives messages that were rejected, expired, or exceeded their delivery limit.
+  dlq: popov-rnd.queue.dlq       # The Dead-Letter Queue (DLQ) — bound to the DLX. Stores "poison" or permanently failed messages for later inspection or manual reprocessing.
 
 logging:
   level:
