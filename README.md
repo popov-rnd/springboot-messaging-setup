@@ -62,7 +62,7 @@ mvn -pl producer spring-boot:run
 mvn -pl consumer spring-boot:run
 ```
 
-## 📨 Producer Module — Popov R&D RabbitMQ Example
+## 📨 Producer Module
 
 This module demonstrates a **Spring Boot 3.x producer** that sends JSON messages to RabbitMQ with full reliability and observability.
 
@@ -79,16 +79,32 @@ This module demonstrates a **Spring Boot 3.x producer** that sends JSON messages
 
 ---
 
+## 📥 Consumer Module
+
+This module demonstrates a **Spring Boot 3.x consumer** designed for dependable message processing, controlled acknowledgments, and built-in dead-letter support.
+
+---
+
+### ⚙️ Features
+
+- ✅ **Manual acknowledgment mode** — messages are explicitly `ACK`ed or `NACK`ed after processing, ensuring no loss if the app crashes mid-task.
+- ✅ **Quorum queue support** — uses durable Raft-replicated queues with optional DLQ routing for failed deliveries.
+- ✅ **Redelivery control** — via `x-delivery-limit` and DLX, automatically moves messages to a `.dlq` queue after multiple failed attempts.
+- ✅ **Thread-safe concurrency** — configured with a bounded consumer thread pool and `prefetch` to balance throughput and memory use.
+- ✅ **Structured logging** — every delivery includes correlation ID, message ID, and timestamps for full traceability.
+- ✅ **Graceful back-pressure** — prevents overload by limiting unacked (in-flight) messages per consumer channel.
+
+---
 
 ### 🧭 Observability
 
-Producer-side metrics can be exposed via Spring Boot Actuator, e.g. 
+Producer-side metrics can be exposed via Spring Boot Actuator, e.g.
 - Network connection failures before broker;
 - Mapping app-level job types to messages.
 
 /actuator/prometheus — exposes Micrometer metrics
 
-### 🖥️ Broker Monitoring
+## 🖥️ Broker Monitoring
 In fact, many production setups drop application-level counters entirely once they have proper broker monitoring.
 
 RabbitMQ Management Plugin (enabled by default in the Docker image):

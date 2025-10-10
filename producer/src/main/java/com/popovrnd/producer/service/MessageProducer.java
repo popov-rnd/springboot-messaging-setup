@@ -44,7 +44,7 @@ public class MessageProducer {
                     jobMessage,           // Payload (POJO → JSON)
                     message -> { // MessagePostProcessor allows header customization before send
 
-                        // 💾 Make the message persistent:
+                        // 💾 Make the message persistent (quorum queues make it out of the box):
                         //    Ensures broker writes it to disk; survives restart if queue is durable.
                         message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
                         // 🆔 Unique message ID:
@@ -63,9 +63,8 @@ public class MessageProducer {
             log.debug("Message is sent = {}", jobMessage);
         } catch (AmqpException ex) {
             // ❌ Handles network/broker/unroutable errors at send time:
-            //    - Retry logic could be added here (Spring RetryTemplate)
             //    - Or save to DB/local file for later replay
-            log.error("❌ Failed to send after retries, storing for replay. id={}", jobMessage.id(), ex);
+            log.error("❌ Broker unreachable (after re-tries), storing for replay. id={}", jobMessage.id(), ex);
             // ⚠️ Save to a DB table or local file for further investigation.
         }
     }

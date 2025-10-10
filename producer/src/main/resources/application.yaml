@@ -10,16 +10,16 @@ spring:
     port: ${RABBIT_PORT:5672}
     username: ${RABBIT_USER:guest}
     password: ${RABBIT_PASS:guest}
-    publisher-confirm-type: correlated   # ✅ Enables confirm callbacks
-    publisher-returns: true              # ✅ Enables return callbacks
-    # Optional: producer template retry
+    publisher-confirm-type: correlated   #  Wait for broker to confirm publish success (publisher confirms). Guarantees that messages are persisted in quorum queue before ACK. Use "correlated" to receive confirm callbacks tied to CorrelationData IDs.
+    publisher-returns: true              # Enables ReturnCallback when a message is unroutable. Works only with mandatory publishing. Allows you to log, re-route, or persist unsent messages.
+    # Producer retry configuration (template-level)
     template:
       retry:
-        enabled: true # Re-try when: network broken (VPN, firewall, DNS issue, no TCP), etc.
+        enabled: true                    # Enables automatic retries when sending fails due to transient I/O errors (network drop, DNS, VPN outage, broker restart). Prevents single send failures from losing messages.
         initial-interval: 2s
         max-attempts: 5
-        multiplier: 2.0 # Meaning delay doubles each retry (2s ? 4s ? 8s).
-        max-interval: 10s
+        multiplier: 2.0                  # Meaning delay doubles each retry (2s ? 4s ? 8s).
+        max-interval: 10s                # After all retries fail, handle in catch block → store to DB / local outbox
 
 producer:
   exchange: popov-rnd.exchange   # The main exchange the producer publishes messages to. Acts as the entry point into RabbitMQ routing logic.

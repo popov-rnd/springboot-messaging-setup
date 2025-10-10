@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.amqp.core.*;
 
 /**
- * Declares a RabbitMQ quorum queue (modern).
+ * Configures a RabbitMQ quorum queue (modern).
  * <p>
  * Quorum queues are the modern, replicated queue type in RabbitMQ.
  * They are based on the Raft consensus algorithm and are recommended
@@ -56,13 +56,49 @@ public class MessagingConfig {
     @Bean
     public Queue mainQueue() {
         return QueueBuilder
+                // 🧱 Durable queue survives broker restarts
+                //    In quorum mode, durability is mandatory anyway.
                 .durable(props.queue())
+
+                // 🧩 Define this queue as a Quorum queue
+                //    → Replicated across quorum nodes via Raft.
+                //    → Always persisted to disk, fault-tolerant.
                 .withArgument("x-queue-type", "quorum")
+
+                // ♻️ Delivery-limit for re-delivery attempts
+                //    → After 3 failed deliveries, message moves to DLQ.
+                //    → Prevents infinite redelivery loops.
                 .withArgument("x-delivery-limit", 3)
+
+                // 📦 Maximum number of messages stored in the queue.
+                //    → Prevents unbounded growth.
+                //    → Combined with 'x-overflow' below.
+                //    ⚠️ Tune via broker policy in prod if possible.
+                .withArgument("x-max-length", 10_000)
+
+                // 🚦 Overflow strategy when queue is full:
+                //    "reject-publish" = reject new messages instead of
+                //    silently dropping old ones (no data loss).
+                //    Producer receives basic.return → handle via ReturnsCallback.
+                .withArgument("x-overflow", "reject-publish")
+
+                // 🧠 Memory safeguard (since RabbitMQ 3.12):
+                //    → Limit how much stays in RAM; excess is paged to disk.
+                //    → Helps prevent broker OOM during bursts.
+                .withArgument("x-max-in-memory-length-bytes", 50_000_000)
+
+                // ⚰️ Dead-letter configuration:
+                //    → When message exceeds delivery-limit or is rejected,
+                //      it’s routed to this DLX for later inspection.
                 .withArgument("x-dead-letter-exchange", props.dlx())
+
+                // 🔁 DLQ routing key (matches binding on DLQ side)
                 .withArgument("x-dead-letter-routing-key", props.routingKey() + ".dlq")
+
+                // ✅ Build final Queue instance
                 .build();
     }
+
 
     @Bean
     public Queue dlqQueue() {
