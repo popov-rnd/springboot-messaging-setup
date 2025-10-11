@@ -3,6 +3,9 @@ spring:
     name: consumer
   main:
     web-application-type: none
+  threads:
+    virtual:
+      enabled: true
   rabbitmq:
     host: ${RABBIT_HOST:localhost}
     port: ${RABBIT_PORT:5672}

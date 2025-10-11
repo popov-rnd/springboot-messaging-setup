@@ -9,6 +9,10 @@ It includes two independent applications that communicate through a single Rabbi
 | 📨 **producer** | Publishes `JobMessage` objects as JSON with full reliability (retries, confirms, returns). |
 | 📥 **consumer** | Listens for messages, processes them, and supports Dead-Letter Queue (DLQ) handling. |
 
+Producers own exchanges — they publish into them.
+
+Consumers own queues — they receive from them.
+
 ---
 
 Each submodule can be run separately but shares common settings and version alignment via the parent POM.

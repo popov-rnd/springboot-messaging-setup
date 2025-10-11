@@ -1,0 +1,42 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name:
+      producer-cloud
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USER:guest}
+    password: ${RABBIT_PASS:guest}
+    # --- Reliable publishing ---
+    publisher-confirm-type: correlated   # Enables confirm callbacks
+    publisher-returns: true              # Enables return callbacks for unroutable messages
+    connection-timeout: 5s               # Optional safety: fail fast if broker unreachable
+
+  cloud:
+    stream:
+      # --- Binding definitions ---
+      bindings:
+        popov-rnd-out-0:                       # Logical name: <bindingName>-out-<index>
+          destination: popov-rnd.exchange   # Exchange name (topic type by default)
+          content-type: application/json    # Message serialization
+      rabbit:
+        bindings:
+          popov-rnd-out-0:
+            producer:
+              routing-key-expression: '''popov-rnd.key'''   # Routing key for messages
+              exchange-type: direct                         # Type of exchange (topic/direct/fanout)
+              declare-exchange: true                        # Auto-declare exchange if missing
+              use-confirm-header: true                      # Adds confirm header for per-message acks
+              delivery-mode: PERSISTENT                     # Default for JSON; include if sending transient messages
+logging:
+  level:
+    # Custom package logging
+    com.popovrnd.producer-cloud: DEBUG
+    org.springframework.amqp: DEBUG
+    # Core Spring Cloud Stream lifecycle logs
+    org.springframework.cloud.stream: DEBUG
+    org.springframework.cloud.function: INFO
+    org.springframework.boot: WARN

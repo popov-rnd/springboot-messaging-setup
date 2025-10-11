@@ -34,6 +34,8 @@ public class MessageConsumer {
     @RabbitListener(queues = "${consumer.queue}")
     public void onMessage(JobMessage jobMessage, Message message, Channel channel) throws IOException {
 
+        log.info("Received message with thread = {}", Thread.currentThread());
+
         log.info("Received message from [{}]: {}", message.getMessageProperties().getConsumerQueue(), jobMessage);
 
         long tag = message.getMessageProperties().getDeliveryTag();
