@@ -9,7 +9,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("imperative")
 public class MessageProducer {
 
     private static final Logger log = LoggerFactory.getLogger(MessageProducer.class);
@@ -20,10 +20,9 @@ public class MessageProducer {
     private final StreamBridge streamBridge;
 
     public MessageProducer(
-            StreamBridge streamBridge,
-            @Value("${app.messaging.out-binding:popov-rnd-out-0}") String bindingName) {
+            StreamBridge streamBridge) {
         this.streamBridge = streamBridge;
-        this.bindingName = bindingName;
+        this.bindingName = "popov-rnd-out-0";
     }
 
     /**

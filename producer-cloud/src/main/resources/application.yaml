@@ -16,15 +16,17 @@ spring:
     connection-timeout: 5s               # Optional safety: fail fast if broker unreachable
 
   cloud:
+    #function:
+      #definition: popov-rnd              # Matches Supplier<Flux<JobMessage>> function name
     stream:
       # --- Binding definitions ---
       bindings:
-        popov-rnd-out-0:                       # Logical name: <bindingName>-out-<index>
+        popovRnd-out-0:                    # Logical name: <bindingName>-out-<index>
           destination: popov-rnd.exchange   # Exchange name (topic type by default)
           content-type: application/json    # Message serialization
       rabbit:
         bindings:
-          popov-rnd-out-0:
+          popovRnd-out-0:
             producer:
               routing-key-expression: '''popov-rnd.key'''   # Routing key for messages
               exchange-type: direct                         # Type of exchange (topic/direct/fanout)
@@ -34,7 +36,7 @@ spring:
 logging:
   level:
     # Custom package logging
-    com.popovrnd.producer-cloud: DEBUG
+    com.popovrnd.producercloud: DEBUG
     org.springframework.amqp: DEBUG
     # Core Spring Cloud Stream lifecycle logs
     org.springframework.cloud.stream: DEBUG

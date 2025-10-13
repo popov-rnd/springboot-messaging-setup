@@ -13,7 +13,7 @@ spring:
     password: ${RABBIT_PASS:guest}
     listener:
       simple:
-        acknowledge-mode: manual     # ✅ MANUAL = app controls when a message is ACKed/NACKed. Use this for reliability — ensures messages aren't lost if your code fails halfway.
+        acknowledge-mode: manual     # ✅ MANUAL = app controls when a message is ACKed/NACKed. Use this for reliability — ensures messages aren't lost if your code fails halfway. Choose AUTO for simplicity, MANUAL if you need precise timing or conditional ack logic.
                                      # ⚠️ AUTO = message considered ACKed when listener returns successfully. May cause silent loss if your app crashes mid-processing.
         concurrency: 2               # Initial number of consumer threads (each = one AMQP channel). Each thread processes one message at a time. Tune based on CPU cores and task type (2 cores → 2 threads).
         max-concurrency: 5           # Max threads allowed to scale up dynamically under load. The container can spawn extra consumers (up to 5 total); if the queue backlog grows, then scale back down.

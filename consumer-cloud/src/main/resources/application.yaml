@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: consumer-cloud
+
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USER:guest}
+    password: ${RABBIT_PASS:guest}
+
+  cloud:
+    #function:
+      #definition: popovRnd                        # Function bean name = input binding prefix (popov-rnd-in-0)
+
+    stream:
+      bindings:
+        popovRnd-in-0:
+          # === Generic binding-level settings ===
+          destination: popov-rnd.exchange         # Exchange to bind the queue to
+          group: popov-rnd.queue                  # Logical consumer group ? physical queue name
+          contentType: application/json           # Convert JSON ? JobMessage DTO
+          consumer:
+            concurrency: 2                        # Number of parallel listener containers
+            max-attempts: 1                       # If processing fails, the number of attempts to process the message (including the first). Set to 1 to disable retry.
+
+      # === Rabbit-specific consumer tuning ===
+      rabbit:
+        bindings:
+          popovRnd-in-0:
+            consumer:
+              exchangeType: direct
+              bindingRoutingKey: popov-rnd.key
+              maxConcurrency: 5                          # Max Rabbit consumers per container (dynamic scale-up cap)
+              prefetch: 10                               # Prefetch/QoS: unacked messages per consumer
+              acknowledgeMode: MANUAL                    # We call basicAck/basicNack ourselves
+              queueNameGroupOnly: true                   # Queue name = group name (no destination suffix)
+              quorum:
+                enabled: true
+                delivery-limit: 3
+              autoBindDlq: true                          #
+              republishToDlq: true                       # Send failed messages (after retries) to DLQ via DLX
+              deadLetterExchange: popov-rnd.dlx          # DLX to use for republishing
+              deadLetterRoutingKey: popov-rnd.key.dlq    # Routing key for DLQ
+              requeue-rejected: true                     # Let broker handle redelivery
+
+logging:
+  level:
+    # Custom package logging
+    com.popovrnd.consumercloud: DEBUG
+    org.springframework.amqp: DEBUG
+    # Core Spring Cloud Stream lifecycle logs
+    org.springframework.cloud.stream: DEBUG
+    org.springframework.cloud.function: INFO
+    org.springframework.boot: WARN
