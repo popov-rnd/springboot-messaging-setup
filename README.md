@@ -4,10 +4,12 @@ This repository demonstrates a **multi-module Maven project** built with **Sprin
 
 It includes two independent applications that communicate through a single RabbitMQ broker:
 
-| Module | Description |
-|---------|--------------|
-| 📨 **producer** | Publishes `JobMessage` objects as JSON with full reliability (retries, confirms, returns). |
-| 📥 **consumer** | Listens for messages, processes them, and supports Dead-Letter Queue (DLQ) handling. |
+| Module                  | Description |
+|-------------------------|--------------|
+| 📨 **producer[-cloud]** | Publishes `JobMessage` objects as JSON with full reliability (retries, confirms, returns). |
+| 📥 **consumer[-cloud]** | Listens for messages, processes them, and supports Dead-Letter Queue (DLQ) handling. |
+
+Modules with -cloud suffix are based on Spring Cloud Stream library.
 
 Producers own exchanges — they publish into them.
 
