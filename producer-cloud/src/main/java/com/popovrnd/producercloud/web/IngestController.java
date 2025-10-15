@@ -1,14 +1,14 @@
-package com.popovrnd.producer.web;
+package com.popovrnd.producercloud.web;
 
-import com.popovrnd.producer.service.MessageProducer;
-import com.popovrnd.producer.service.domain.JobMessage;
-import com.popovrnd.producer.web.request.JobRequest;
+import com.popovrnd.producercloud.domain.JobMessage;
+import com.popovrnd.producercloud.service.MessageProducer;
+import com.popovrnd.producercloud.web.request.JobRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -18,7 +18,7 @@ public class IngestController {
 
     private final MessageProducer producer;
 
-    public IngestController(MessageProducer producer) {
+    public IngestController(@Qualifier("imperative") MessageProducer producer) {
         this.producer = producer;
     }
 
@@ -33,7 +33,7 @@ public class IngestController {
         );
 
         producer.sendMessage(message);
-        log.debug("Message has been sent! {}", message);
+        log.debug("Message has been sent! {}, thread = {}", message, Thread.currentThread());
         return "✅ Sent: " + message;
     }
 

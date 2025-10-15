@@ -4,6 +4,13 @@
 
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.6</version>
+        <relativePath/> <!-- or path to parent aggregator if needed -->
+    </parent>
+
 	<groupId>com.popovrnd</groupId>
 	<artifactId>springboot-messaging-setup</artifactId>
 	<version>1.0.0</version>
@@ -13,7 +20,9 @@
 
     <modules>
         <module>producer</module>
+        <module>producer-cloud</module>
         <module>consumer</module>
+        <module>consumer-cloud</module>
     </modules>
 
     <properties>
@@ -21,5 +30,52 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <!--
+      Dependency Management Section
+      This section imports two BOMs (Bill of Materials) that define and lock all dependency versions
+      for both Spring Boot and Spring Cloud components across all child modules.
+
+      Why it matters:
+        - Keeps your entire multi-module project version-aligned.
+        - Prevents "jar hell" and version conflicts between Boot, Cloud, and Stream binders.
+        - Lets you omit <version> in all <dependency> tags — Maven resolves them from these BOMs.
+
+      In short:
+        spring-boot-dependencies → defines core Boot starter versions.
+        spring-cloud-dependencies → defines versions for Spring Cloud libraries (Stream, Config, etc.)
+        Their combination ensures that:
+          Boot 3.5.x ↔ Cloud 2025.0.x are guaranteed compatible.
+    -->
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>3.5.6</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>2025.0.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
 </project>

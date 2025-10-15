@@ -1,4 +1,4 @@
-package com.popovrnd.producer.service.domain;
+package com.popovrnd.producercloud.domain;
 
 import java.io.Serializable;
 import java.util.Date;

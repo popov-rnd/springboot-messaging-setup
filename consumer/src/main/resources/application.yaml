@@ -1,3 +1,32 @@
 spring:
   application:
     name: consumer
+  main:
+    web-application-type: none
+  threads:
+    virtual:
+      enabled: true
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USER:guest}
+    password: ${RABBIT_PASS:guest}
+    listener:
+      simple:
+        acknowledge-mode: manual     # ✅ MANUAL = app controls when a message is ACKed/NACKed. Use this for reliability — ensures messages aren't lost if your code fails halfway. Choose AUTO for simplicity, MANUAL if you need precise timing or conditional ack logic.
+                                     # ⚠️ AUTO = message considered ACKed when listener returns successfully. May cause silent loss if your app crashes mid-processing.
+        concurrency: 2               # Initial number of consumer threads (each = one AMQP channel). Each thread processes one message at a time. Tune based on CPU cores and task type (2 cores → 2 threads).
+        max-concurrency: 5           # Max threads allowed to scale up dynamically under load. The container can spawn extra consumers (up to 5 total); if the queue backlog grows, then scale back down.
+        prefetch: 10                 # Max number of unacked (in-flight) messages per thread/channel. Acts as network-level buffer; RabbitMQ stops pushing more when unacked == prefetch. concurrency × prefetch = total buffered messages. For CPU-bound: 1–2, for I/O-bound: 5–20 is typical.
+        retry:
+          enabled: false             # Disable Spring's built-in retry mechanism. In MANUAL ack mode, retries are better handled by RabbitMQ's own requeue/redelivery + x-delivery-limit + DLQ flow. Enabling both can cause double-retries and message storms.
+
+consumer:
+  queue: popov-rnd.queue             # Must match the queue declared by producer
+
+logging:
+  level:
+    com.popovrnd.consumer: DEBUG
+    org.springframework.amqp: DEBUG
+    org.springframework: WARN
+
